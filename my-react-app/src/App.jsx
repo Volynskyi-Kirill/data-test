@@ -19,7 +19,8 @@ function App() {
     setErrorMessage(defaultValue);
   };
 
-  const handleStartClick = async () => {
+  const handleSubmitForm = async (event) => {
+    event.preventDefault();
     setIsStarted(true);
 
     const totalRequests = 1000;
@@ -27,11 +28,14 @@ function App() {
     let concurrencyLimit = Number(inputValue);
     let doneRequest = 0;
 
-    for (let i = 1; i <= totalRequests; i++) {
-      requestPromises.push(fetch(`http://localhost:3000/api/${i}`));
-    }
+    // for (let i = 1; i <= totalRequests; i++) {
+    //   requestPromises.push(fetch(`http://localhost:3000/api/${i}`));
+    // }
 
     while (doneRequest < totalRequests) {
+      for (let i = doneRequest + 1; i <= doneRequest + concurrencyLimit; i++) {
+        requestPromises.push(fetch(`http://localhost:3000/api/${i}`));
+      }
       const startTime = Date.now();
 
       const promiseToResolve = requestPromises.slice(
@@ -53,9 +57,11 @@ function App() {
     setIsStarted(false);
   };
 
+  const isButtonDisabled = isStarted || errorMessage;
+
   return (
     <>
-      <div className="app-container">
+      <form className="app-form" onSubmit={handleSubmitForm}>
         <input
           type="number"
           required
@@ -67,9 +73,9 @@ function App() {
         />
         {errorMessage && <p className="error-message">{errorMessage}</p>}
         <button
-          disabled={isStarted}
-          onClick={handleStartClick}
+          disabled={isButtonDisabled}
           className="start-button"
+          type="submit"
         >
           {isStarted ? "Running..." : "Start"}
         </button>
@@ -80,7 +86,7 @@ function App() {
             </li>
           ))}
         </ul>
-      </div>
+      </form>
     </>
   );
 }
